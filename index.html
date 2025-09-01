@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Seam Carving</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2>Seam Carving</h2>
+    <input class="hidden" type="file" id="imageUpload" name="imageUpload" accept="image/*">
+    <label for="imageUpload" id="selectButton">Select image</label>
+
+    <div class="options">
+        Energy calculation method:
+        <div>
+            <input type="radio" id="sobelOperator" name="method" value="sobel">
+            <label for="sobelOperator">Sobel operator</label><br>
+        </div>
+        <div>
+            <input type="radio" id="forwardEnergy" name="method" value="forwardErg">
+            <label for="forwardEnergy">Forward energy</label><br>  
+        </div>
+    </div>
+
+    <button id="startButton">Carve</button>
+
+    <div class="loadingToSlider" id="wrapper">
+        <span class="percent hidden" id="percent">0%</span>
+        <div class="progress hidden" id="progress"></div>
+        <div class="sizeSlider hidden">
+            <input type="range" class="slider left" value="100">
+            <input type="range" class="slider right" value="100">
+        </div>
+    </div>
+
+    <canvas class="hidden" id="hiddenCanvas"></canvas>
+    <canvas id="mainCanvas"></canvas>
+    
+    <script src="script.js"></script>
+</body>
+</html>
