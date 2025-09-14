@@ -44,8 +44,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const mainCtx = mainCanvas.getContext('2d');
     
     // Load Image
+    let imageData = null;
     
-    function loadImage(file, imageData) {
+    function loadImage(file) {
         const reader = new FileReader();
         reader.onload = (fileLoadedEvent) => {
             const img = document.createElement('img');
@@ -54,22 +55,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 hiddenCanvas.height = img.height;
                 hiddenCtx.drawImage(img, 0, 0);
 
-                let [displayHeight, displayWidth] = calcSize(img.width, img.height);
-                mainCanvas.width = displayWidth;
-                mainCanvas.height = displayHeight;
+                mainCanvas.width = img.width;
+                mainCanvas.height = img.height;
+                let [displayWidth, displayHeight] = calcSize(img.width, img.height);
+                mainCanvas.style.width = `${displayWidth}px`;
+                mainCanvas.style.height = `${displayHeight}px`;
                 mainCtx.drawImage(hiddenCanvas, 0, 0);
                 imageData = hiddenCtx.getImageData(0, 0, img.width, img.height);
+                console.log(imageData);
             }
             img.src = fileLoadedEvent.target.result;
         };
         reader.readAsDataURL(file);
     }
 
-    let imageData = null;
-    
+
     imageUploader.addEventListener('change', (fileUploadEvent) => {
         const file = fileUploadEvent.target.files[0];
         if(!file) return;
-        loadImage(file, imageData);
+        loadImage(file);
     });
 });
