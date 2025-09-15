@@ -48,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function loadImage(file) {
         const reader = new FileReader();
         reader.onload = (fileLoadedEvent) => {
+            console.log(fileLoadedEvent);
             const img = document.createElement('img');
             img.onload = () => {
                 hiddenCanvas.width = img.width;
@@ -74,7 +75,15 @@ document.addEventListener("DOMContentLoaded", () => {
         loadImage(file);
     });
 
-    // web worker
+    // start computation
+    const startButton = document.querySelector("#startButton");
     let worker = new Worker('worker.js');
-    worker.postMessage("This message is from web worker from another thread")
+    function startComputation() {
+        worker.postMessage("ayooo");
+        worker.onmessage = (message) => {
+            console.log(message);
+        }
+    };
+    startButton.addEventListener('click', startComputation);
+
 });
