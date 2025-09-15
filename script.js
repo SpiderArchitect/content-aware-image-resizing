@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
     // Image width slider
     const leftSliderEl = document.querySelector(".slider.left")
     const rightSliderEl = document.querySelector(".slider.right")
@@ -69,10 +68,13 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsDataURL(file);
     }
 
-
     imageUploader.addEventListener('change', (fileUploadEvent) => {
         const file = fileUploadEvent.target.files[0];
         if(!file) return;
         loadImage(file);
     });
+
+    // web worker
+    let worker = new Worker('worker.js');
+    worker.postMessage("This message is from web worker from another thread")
 });
