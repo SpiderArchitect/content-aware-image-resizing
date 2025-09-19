@@ -48,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function loadImage(file) {
         const reader = new FileReader();
         reader.onload = (fileLoadedEvent) => {
-            console.log(fileLoadedEvent);
             const img = document.createElement('img');
             img.onload = () => {
                 hiddenCanvas.width = img.width;
@@ -62,7 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 mainCanvas.style.height = `${displayHeight}px`;
                 mainCtx.drawImage(hiddenCanvas, 0, 0);
                 imageData = hiddenCtx.getImageData(0, 0, img.width, img.height);
-                console.log(imageData);
             }
             img.src = fileLoadedEvent.target.result;
         };
@@ -75,15 +73,23 @@ document.addEventListener("DOMContentLoaded", () => {
         loadImage(file);
     });
 
-    // start computation
+    // start computation to get outputData
     const startButton = document.querySelector("#startButton");
     let worker = new Worker('worker.js');
     function startComputation() {
-        worker.postMessage("ayooo");
-        worker.onmessage = (message) => {
-            console.log(message);
+        if(!imageData) return;
+        console.log(imageData);
+        worker.postMessage(imageData);
+        worker.onmessage = (event) => {
+            processData(event.data)
         }
     };
     startButton.addEventListener('click', startComputation);
+
+    function processData(outputData) {
+        console.log("processed!!");
+        console.log(outputData);
+        mainCtx.putImageData(outputData, 0, 0);
+    }
 
 });
