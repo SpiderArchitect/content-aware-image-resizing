@@ -54,9 +54,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 hiddenCanvas.height = img.height;
                 hiddenCtx.drawImage(img, 0, 0);
 
+                // sets resolution of canvas
                 mainCanvas.width = img.width;
                 mainCanvas.height = img.height;
                 let [displayWidth, displayHeight] = calcSize(img.width, img.height);
+                // sets display size of canvas(scaling)
                 mainCanvas.style.width = `${displayWidth}px`;
                 mainCanvas.style.height = `${displayHeight}px`;
                 mainCtx.drawImage(hiddenCanvas, 0, 0);
@@ -89,7 +91,5 @@ document.addEventListener("DOMContentLoaded", () => {
     function processData(outputData) {
         console.log("processed!!");
         console.log(outputData);
-        mainCtx.putImageData(outputData, 0, 0);
     }
-
 });
