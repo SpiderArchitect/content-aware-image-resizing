@@ -1,8 +1,10 @@
 ## Seam Carving
 #### TODO:
 * A basic UI
-* make sure loadImage only processes image, even if the html input allows other things
 * Image input
 * Image to pixel array
 * Set up worker
-* Create energy function
+* Create energy map
+* Generate pixel removal width map
+* Build image of a width from map
+* Better UI
