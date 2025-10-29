@@ -80,16 +80,16 @@ document.addEventListener("DOMContentLoaded", () => {
     let worker = new Worker('worker.js');
     function startComputation() {
         if(!imageData) return;
+        console.log("computation started!!");
         console.log(imageData);
         worker.postMessage(imageData);
         worker.onmessage = (event) => {
             processData(event.data)
         }
     };
-    startButton.addEventListener('click', startComputation);
-
     function processData(outputData) {
         console.log("processed!!");
         console.log(outputData);
     }
+    startButton.addEventListener('click', startComputation);
 });

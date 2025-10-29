@@ -1,4 +1,5 @@
 onmessage = (message) => {
+    console.log("worker got message!");
     let imageData = message.data;
     postMessage(calcSeamHistory(imageData));
 }
@@ -8,19 +9,29 @@ function calcSeamHistory(originalImage)
     let croppedData = {
         height: originalImage.height,
         width: originalImage.width,
-        greyScaleArray: generateGreyScale(originalImage),
-        originalPosMap: generatePosMap(height, width),
+        greyScale: generateGreyScale(originalImage),
+        originalColMap: generateColMap(originalImage.height, originalImage.width),
     };
-    
+
+    // removalWidth[r][c] = w means tells that to transition from w to w-1, (r, c) has to be removed
     let removalHistory = {
         height: originalImage.height,
         width: originalImage.width,
-        removalWidth: new Array(imageHeight*imageWidth).fill(0)
+        removalWidth: Array(originalImage.height).fill(0).map(x => Array(originalImage.width).fill(0))
     };
-
-    let seam = findSeam(croppedData);
-
-    markSeamWidth(seam, removalHistory, croppedData);
+    let seamCols = null;
+    let prevPercentageDone = 0;
+    let currPercentageDone = 0;
+    postMessage(currPercentageDone);
+    while(croppedData.width > 0)
+    {
+        seamCols = findSeamCols(croppedData);
+        markSeamWidth(seamCols, removalHistory, croppedData);
+        removeSeam(seamCols, croppedData);
+        prevPercentageDone = currPercentageDone;
+        currPercentageDone = Math.floor(((originalImage.width - croppedData.width) * 100) / originalImage.width);
+        if(prevPercentageDone != currPercentageDone) postMessage(currPercentageDone);
+    }
     return removalHistory;
 }
 function generateGreyScale(originalImage)
@@ -28,7 +39,7 @@ function generateGreyScale(originalImage)
     let width = originalImage.width;
     let height = originalImage.height;
     let pixelArray = originalImage.data;
-    let greyScale = new Array(height * width).fill(0);
+    let greyScale = Array(height).fill(0).map(x => Array(width).fill(0));
     for(let r = 0; r < height; ++r)
     {
         for(let c = 0; c < width; ++c)
@@ -36,113 +47,136 @@ function generateGreyScale(originalImage)
             let R = (r * width + c) * 4;
             let G = R + 1;
             let B = R + 2;
-            greyScale[r * width + c] = 0.299 * pixelArray[R] + 0.587 * pixelArray[G] + 0.114 * pixelArray[B];
+            greyScale[r][c] = 0.299 * pixelArray[R] + 0.587 * pixelArray[G] + 0.114 * pixelArray[B];
         }
     }
     return greyScale;
 }
-function generatePosMap(height, width)
+function generateColMap(height, width)
 {
-    let posMap = new Array(width * height).fill(0);
+    let posMap = Array(height).fill(0).map(x => Array(width).fill(0));
     for(let r = 0; r < height; ++r)
     {
         for(let c = 0; c < width; ++c)
         {
-            posMap[r*width + c] = [r, c];
+            posMap[r][c] = c;
         }
     }
     return posMap;
 }
 
-function findSeam(croppedData)
+function findSeamCols(croppedData)
 {
     let width = croppedData.width;
     let height = croppedData.height;
-    let greyScaleArray = croppedData.greyScaleArray;
     let dp = sobelFilter(croppedData);
     for(let r = 1; r < height; ++r)
     {
         for(let c = 0; c < width; ++c)
         {
-            let prevMin = dp[(r-1) * width + (c)];
-            if(0 <= c-1 && dp[(r-1) * width + (c-1)] < prevMin)
+            let prevMin = dp[r-1][c];
+            if(0 <= c-1 && dp[r-1][c-1] < prevMin)
             {
-                prevMin = dp[(r-1) * width + (c-1)];
+                prevMin = dp[r-1][c-1];
             }
-            if(c+1 <= width && dp[(r-1) * width + (c+1)] < prevMin)
+            if(c+1 < width && dp[r-1][c+1] < prevMin)
             {
-                prevMin = dp[(r-1) * width + (c+1)];
+                prevMin = dp[r-1][c+1];
             }
-            dp[r * width + c] += prevMin;
+            dp[r][c] += prevMin;
         }
     }
-        
-    let seamCols = [];
-    let end = null;
-    let minVal = Infinity;
+    // seamCol[r] stores column to be removed at height r in croppedData
+    let seamCol = Array(height).fill(0);
+    let minVal = Number.MAX_SAFE_INTEGER;
     for(let c = 0; c < width; ++c)
     {
-        if(dp[(height-1) * width + c] < minVal)
+        if(dp[height-1][c] < minVal)
         {
-            end = [height-1, c];
-            minVal = dp[(height-1) * width + c];
+            minVal = dp[height-1][c];
+            seamCol[height-1] = c;
         }
     }
-    seamCols.push([...end]);
-
-    for(let r = height - 2; r >= 0; --r)
+    for(let r = height-2; r >= 0; --r)
     {
-        let nextC = seamCols.at(-1);
-        let currC = nextC;
-        if(0 <= nextC-1 && dp[r * width + currC] > dp[r * width + nextC - 1]) currC = nextC - 1;
-        if(nextC+1 <= width-1 && dp[r * width + currC] > dp[r * width + nextC + 1]) currC = nextC + 1;
-        seam.push([r, currC]);
-    }
-
-    seamCols.reverse();
-    return seamCols;
-}
-function markSeamWidth(seam, removalHistory, croppedData)
-{
-    let originalWidth = removalHistory.width;
-    let currWidth = croppedData.width;
-    let originalPosMap = croppedData.originalPosMap;
-    seam.forEach((pos, ind) => {
-        let originalCol = originalPosMap[(pos[0]) * currWidth + pos[1]];
-        removalHistory[pos[0] * originalWidth + originalCol] = currWidth;
-    });
-}
-function removeSeam(seam, croppedData)
-{
-
-}
-
-
-
-let sobelX = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]];
-let sobelY = [[-1, -2, -1], [0, 0, 0], [1, 2, 1]];
-function sobelFilter(greyScale, imageWidth, imageHeight, r, c)
-{
-    let gX = 0;
-    let gY = 0;
-    for(let dr = -1; dr <= 1; ++dr)
-    {
-        for(let dc = -1; dc <= 1; ++dc)
+        minVal = Number.MAX_SAFE_INTEGER;
+        if(seamCol[r+1]-1 >= 0 && dp[r][seamCol[r+1]-1] < minVal)
         {
-            let I = 0;
-            if(r+dr < 0 || imageHeight <= r+dr || c+dc < 0 || imageWidth <= c+dc)
-            {
-                I = 255;
-            }
-            else
-            {
-                I = greyScale[(r + dr) * imageWidth + (c + dc)];
-            }
-
-            gX += sobelX[1 + dr][1 + dc] * I;
-            gY += sobelY[1 + dr][1 + dc] * I;
+            minVal = Math.min(minVal, dp[r][seamCol[r+1]-1]);
+            seamCol[r] = seamCol[r+1]-1;
+        }
+        if(dp[r][seamCol[r+1]] < minVal)
+        {
+            minVal = Math.min(minVal, dp[r][seamCol[r+1]]);
+            seamCol[r] = seamCol[r+1];
+        }
+        if(seamCol[r+1]+1 < width && dp[r][seamCol[r+1]+1] < minVal)
+        {
+            minVal = Math.min(minVal, dp[r][seamCol[r+1]+1]);
+            seamCol[r] = seamCol[r+1]+1;
         }
     }
+    return seamCol;
+}
 
-    return gX * gX + gY * gY;
+// scharr instead of sobel
+let sobelX = [[-3, 0, 3], [-10, 0, 10], [-3, 0, 3]];
+let sobelY = [[-3, -10, -3], [0, 0, 0], [3, 10, 3]];
+function sobelFilter(croppedData)
+{
+    let imageHeight = croppedData.height;
+    let imageWidth = croppedData.width;
+    let sobelData = Array(imageHeight).fill(0).map(x => Array(imageWidth).fill(0))
+    for(let r = 0; r < imageHeight; ++r)
+    {
+        for(let c = 0; c < imageWidth; ++c)
+        {
+            let gX = 0;
+            let gY = 0;
+            for(let dr = -1; dr <= 1; ++dr)
+            {
+                for(let dc = -1; dc <= 1; ++dc)
+                {
+                    let fr = r + dr;
+                    let fc = c + dc;
+                    if (fr < 0) fr = 0;
+                    if (fr >= imageHeight) fr = imageHeight - 1;
+                    if (fc < 0) fc = 0;
+                    if (fc >= imageWidth) fc = imageWidth - 1;
+
+                    let I = croppedData.greyScale[fr][fc];
+        
+                    gX += sobelX[1 + dr][1 + dc] * I;
+                    gY += sobelY[1 + dr][1 + dc] * I;
+                }
+            }
+            gX = Math.abs(gX);
+            gY = Math.abs(gY);
+            sobelData[r][c] = gX + gY;
+            // sobelData[r][c] = (Math.max(gX, gY) + gX + gY) >> 1;
+        }
+    }
+    return sobelData;
+}
+
+function markSeamWidth(seamCols, removalHistory, croppedData)
+{
+    let height = croppedData.height;  
+    let width = croppedData.width;
+    for(let r = 0; r < height; ++r)
+    {
+        let originalCol = croppedData.originalColMap[r][seamCols[r]];
+        removalHistory.removalWidth[r][originalCol] = width;
+    }
+}
+function removeSeam(seamCols, croppedData)
+{
+    let height = croppedData.height;  
+    let width = croppedData.width;
+    for(let r = 0; r < height; ++r)
+    {
+        croppedData.greyScale[r].splice(seamCols[r], 1);
+        croppedData.originalColMap[r].splice(seamCols[r], 1);
+    }
+    croppedData.width = croppedData.width - 1;
 }
