@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         else if (outputData.type === 'result') {
             removalWidth = outputData.data;
-            console.log('result', removalWidth);
             leftSliderEl.disabled = false;
             rightSliderEl.disabled = false;
         }
@@ -30,12 +29,12 @@ document.addEventListener("DOMContentLoaded", () => {
             renderImage(outputData.data);
         }
     }
-    function setSliderDesignToLoader()
-    {
-        sliderColour = '#ffae00ff';
-        leftSliderEl.style.height = `${10}px`;
-        rightSliderEl.style.height = `${10}px`;
-    }
+    // function setSliderDesignToLoader()
+    // {
+    //     sliderColour = '#ffae00ff';
+    //     leftSliderEl.style.height = `${10}px`;
+    //     rightSliderEl.style.height = `${10}px`;
+    // }
     let canvasStyleScaleFactor = 1;
     function renderImage(imageData) {
         mainCanvas.width = imageData.width;
@@ -126,7 +125,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // start computation to get outputData
-    let removalWidth = null;
     function startComputation() {
         if (!imageData) return;
         processSliderValue(0);
@@ -134,9 +132,9 @@ document.addEventListener("DOMContentLoaded", () => {
         leftSliderEl.disabled = true;
         rightSliderEl.disabled = true;
         startButton.disabled = true;
-        setSliderDesignToLoader()
+        // setSliderDesignToLoader()
         showSlider();
-        worker.postMessage({ type: 'imageData', data: imageData });
+        worker.postMessage({type: 'imageData', data: imageData });
     };
     startButton.addEventListener('click', startComputation);
 });

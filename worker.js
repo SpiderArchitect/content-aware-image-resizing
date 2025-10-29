@@ -7,8 +7,6 @@ onmessage = (message) => {
         postMessage({ type: 'result', data: removalHistory });
     }
     else if (message.data.type == 'width') {
-        console.log("ayoooo");
-        
         let reqWidth = message.data.data;
         postMessage({ type: 'rebuiltImage', data: buildImage(reqWidth) });
     }

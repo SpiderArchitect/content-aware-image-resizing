@@ -20,7 +20,7 @@ h2 {
 
 #selectButton {
     padding: 3px 4px 3px 4px;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
     border: 2px solid #adb5bd;
     border-radius: 4px;
     cursor: pointer;
@@ -64,20 +64,44 @@ canvas {
     background-color: #ccc;
     outline: none;
     cursor: pointer;
-    height: 6px;
+    height: 10px;
     padding: 0;
 }
 
-.slider::-webkit-slider-thumb {
-    height: 20px;
-    width: 10px;
-    border-radius: 0;
-} 
+.slider.right::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 18px;
+    width: 18px;
+    border-radius: 0% 20% 20% 0%;
+    background: #ffae00;
+    cursor: pointer;
+}
 
-.slider::-moz-range-thumb {
-    height: 20px;
-    width: 10px;
-    border-radius: 0;
+.slider.right::-moz-range-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 0% 20% 20% 0%;
+    background: #ffae00;
+    cursor: pointer;
+    border: none;
+}
+.slider.left::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 18px;
+    width: 18px;
+    border-radius: 20% 0% 0% 20%;
+    background: #ffae00;
+    cursor: pointer;
+}
+.slider.left::-moz-range-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 20% 0% 0% 20%;
+    background: #ffae00;
+    cursor: pointer;
+    border: none;
 }
 
 .slider.left {
